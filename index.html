@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kickoff Quiz — Football Trivia 2017–2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch-dark:#0B3D2E;
+    --pitch-mid:#12492F;
+    --panel:#123524;
+    --panel-raised:#17442E;
+    --line:#2F6B4A;
+    --chalk:#F1FAEE;
+    --chalk-dim:#B9D6C4;
+    --gold:#FFC300;
+    --gold-dim:#8A6E00;
+    --green-card:#4CD07D;
+    --red-card:#E8455C;
+    --radius:14px;
+    --shadow:0 20px 50px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    height:100%;
+  }
+
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:
+      radial-gradient(circle at 15% 8%, rgba(255,255,255,0.05), transparent 40%),
+      repeating-linear-gradient(90deg, var(--pitch-mid) 0px, var(--pitch-mid) 90px, var(--pitch-dark) 90px, var(--pitch-dark) 180px),
+      var(--pitch-dark);
+    color:var(--chalk);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .field-lines{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+    opacity:0.35;
+  }
+  .field-lines::before{
+    content:"";
+    position:absolute;
+    top:6vh; bottom:6vh; left:50%;
+    width:1px;
+    background:rgba(241,250,238,0.18);
+    transform:translateX(-50%);
+  }
+  .field-lines::after{
+    content:"";
+    position:absolute;
+    top:50%; left:50%;
+    width:min(38vh,38vw);
+    height:min(38vh,38vw);
+    border:1px solid rgba(241,250,238,0.18);
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+  }
+
+  .app{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:620px;
+  }
+
+  .card{
+    background:linear-gradient(180deg, var(--panel-raised), var(--panel));
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  /* ---------- Welcome screen ---------- */
+  .welcome{
+    padding:56px 40px 44px;
+    text-align:center;
+  }
+
+  .kick-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:64px;height:64px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ffffff, #cfd8d3 60%, #9fb0a8 100%);
+    box-shadow:0 8px 20px rgba(0,0,0,0.4), inset 0 -4px 8px rgba(0,0,0,0.15);
+    margin-bottom:22px;
+    position:relative;
+  }
+  .kick-badge svg{ width:34px; height:34px; }
+
+  .eyebrow{
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:0.35em;
+    color:var(--gold);
+    font-size:14px;
+    margin:0 0 6px;
+  }
+
+  h1.title{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:56px;
+    line-height:0.95;
+    letter-spacing:0.02em;
+    margin:0 0 18px;
+    color:var(--chalk);
+  }
+
+  .lede{
+    color:var(--chalk-dim);
+    font-size:16px;
+    line-height:1.55;
+    max-width:420px;
+    margin:0 auto 34px;
+  }
+  .lede strong{ color:var(--chalk); }
+
+  .stat-row{
+    display:flex;
+    justify-content:center;
+    gap:28px;
+    margin:0 0 36px;
+  }
+  .stat{
+    text-align:center;
+  }
+  .stat .num{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:34px;
+    color:var(--gold);
+    line-height:1;
+  }
+  .stat .lbl{
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--chalk-dim);
+    margin-top:4px;
+  }
+
+  button.primary{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:22px;
+    letter-spacing:0.06em;
+    background:var(--gold);
+    color:#1a1400;
+    border:none;
+    padding:16px 44px;
+    border-radius:999px;
+    cursor:pointer;
+    box-shadow:0 10px 24px rgba(255,195,0,0.25);
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button.primary:hover{ transform:translateY(-2px); box-shadow:0 14px 30px rgba(255,195,0,0.35); }
+  button.primary:active{ transform:translateY(0); }
+  button.primary:focus-visible{ outline:3px solid var(--chalk); outline-offset:3px; }
+
+  /* ---------- Scoreboard header ---------- */
+  .scoreboard{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 26px;
+    background:#0A2E20;
+    border-bottom:1px solid var(--line);
+  }
+
+  .qcount{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:15px;
+    letter-spacing:0.15em;
+    color:var(--chalk-dim);
+  }
+  .qcount b{ color:var(--gold); font-size:20px; letter-spacing:0.02em; }
+
+  .clock-ring{
+    position:relative;
+    width:54px;
+    height:54px;
+  }
+  .clock-ring svg{ transform:rotate(-90deg); width:54px; height:54px; }
+  .clock-ring circle{
+    fill:none;
+    stroke-width:5;
+  }
+  .clock-ring .track{ stroke:rgba(241,250,238,0.12); }
+  .clock-ring .fill{
+    stroke:var(--gold);
+    stroke-linecap:round;
+    transition:stroke-dashoffset 1s linear, stroke 0.3s ease;
+  }
+  .clock-ring .time{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:16px;
+    color:var(--chalk);
+  }
+
+  .progress-track{
+    height:4px;
+    background:rgba(241,250,238,0.1);
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--gold), #ffe37a);
+    width:0%;
+    transition:width 0.4s ease;
+  }
+
+  /* ---------- Question body ---------- */
+  .question-body{
+    padding:34px 30px 30px;
+  }
+
+  .q-text{
+    font-size:21px;
+    font-weight:700;
+    line-height:1.4;
+    color:var(--chalk);
+    margin:0 0 28px;
+    min-height:88px;
+  }
+
+  .options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:520px){
+    .options{ grid-template-columns:1fr; }
+    h1.title{ font-size:44px; }
+    .stat-row{ gap:18px; }
+  }
+
+  .opt{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-align:left;
+    background:var(--pitch-mid);
+    border:1px solid var(--line);
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    padding:16px 16px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+  }
+  .opt .tag{
+    flex:0 0 auto;
+    width:26px;height:26px;
+    border-radius:7px;
+    background:rgba(241,250,238,0.08);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:14px;
+    color:var(--chalk-dim);
+  }
+  .opt:hover:not(:disabled){ background:#1B5238; border-color:#3A8560; transform:translateY(-1px); }
+  .opt:focus-visible{ outline:3px solid var(--gold); outline-offset:2px; }
+  .opt:disabled{ cursor:default; }
+
+  .opt.correct{
+    background:rgba(76,208,125,0.16);
+    border-color:var(--green-card);
+  }
+  .opt.correct .tag{ background:var(--green-card); color:#04270f; }
+
+  .opt.wrong{
+    background:rgba(232,69,92,0.14);
+    border-color:var(--red-card);
+  }
+  .opt.wrong .tag{ background:var(--red-card); color:#2a0208; }
+
+  /* ---------- Result screen ---------- */
+  .result{
+    padding:54px 40px 46px;
+    text-align:center;
+  }
+  .result .eyebrow{ margin-bottom:10px; }
+  .score-big{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:76px;
+    color:var(--chalk);
+    line-height:1;
+    margin:6px 0 2px;
+  }
+  .score-big span{ color:var(--gold); }
+  .score-sub{
+    color:var(--chalk-dim);
+    font-size:14px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:22px;
+  }
+  .verdict{
+    font-size:16px;
+    color:var(--chalk);
+    max-width:400px;
+    margin:0 auto 34px;
+    line-height:1.5;
+  }
+
+  .rating-bar{
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    margin-bottom:34px;
+  }
+  .rating-bar .pip{
+    width:26px; height:8px;
+    border-radius:4px;
+    background:rgba(241,250,238,0.12);
+  }
+  .rating-bar .pip.on{ background:var(--gold); }
+
+  .sr-only{
+    position:absolute; width:1px; height:1px;
+    padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="field-lines" aria-hidden="true"></div>
+
+<div class="app">
+  <div class="card">
+
+    <!-- ===== Welcome Screen ===== -->
+    <section id="screen-welcome" class="screen active welcome" aria-label="Welcome screen">
+      <div class="kick-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L14.5 9H21L15.5 13.2L17.5 20L12 16L6.5 20L8.5 13.2L3 9H9.5L12 2Z" fill="#0B3D2E"/></svg>
+      </div>
+      <p class="eyebrow">MATCHDAY TRIVIA</p>
+      <h1 class="title">Welcome!</h1>
+      <p class="lede">Test your football knowledge with <strong>50 questions</strong> spanning the biggest moments in the game, <strong>2017 to 2026</strong> — World Cups, Euros, Champions League finals, transfers, and Ballon d'Or winners.</p>
+      <div class="stat-row">
+        <div class="stat"><div class="num">50</div><div class="lbl">Questions</div></div>
+        <div class="stat"><div class="num">15s</div><div class="lbl">Per Question</div></div>
+        <div class="stat"><div class="num">'17–'26</div><div class="lbl">Coverage</div></div>
+      </div>
+      <button class="primary" id="startBtn">Start Quiz</button>
+    </section>
+
+    <!-- ===== Question Screen ===== -->
+    <section id="screen-question" class="screen" aria-label="Quiz question">
+      <div class="scoreboard">
+        <div class="qcount">QUESTION <b id="qIndex">1</b> / <span id="qTotal">50</span></div>
+        <div class="clock-ring">
+          <svg viewBox="0 0 54 54">
+            <circle class="track" cx="27" cy="27" r="23"></circle>
+            <circle class="fill" id="ringFill" cx="27" cy="27" r="23"></circle>
+          </svg>
+          <div class="time" id="timeLeft">15</div>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="question-body">
+        <p class="q-text" id="qText">Loading...</p>
+        <div class="options" id="options" role="group" aria-label="Answer options"></div>
+      </div>
+    </section>
+
+    <!-- ===== Result Screen ===== -->
+    <section id="screen-result" class="screen result" aria-label="Final results">
+      <p class="eyebrow">FULL TIME</p>
+      <div class="score-big"><span id="scoreVal">0</span> / 50</div>
+      <div class="score-sub">Final Score</div>
+      <div class="rating-bar" id="ratingBar" aria-hidden="true"></div>
+      <p class="verdict" id="verdictText">Loading result...</p>
+      <button class="primary" id="restartBtn">Rematch</button>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Question bank (Football, 2017 - 2026) ----------
+  const QUESTIONS = [
+    // Core facts
+    { q: "Which country won the 2018 FIFA World Cup in Russia?", opts: ["Croatia","Belgium","France","England"], correct: 2 },
+    { q: "Which country hosted the 2018 FIFA World Cup?", opts: ["Russia","Brazil","Germany","Qatar"], correct: 0 },
+    { q: "Which country won the 2022 FIFA World Cup in Qatar?", opts: ["France","Brazil","Croatia","Argentina"], correct: 3 },
+    { q: "Which country hosted the 2022 FIFA World Cup?", opts: ["UAE","Qatar","Saudi Arabia","Kuwait"], correct: 1 },
+    { q: "Which country won the 2026 FIFA World Cup, beating Argentina in the final?", opts: ["Spain","France","England","Portugal"], correct: 0 },
+    { q: "The 2026 FIFA World Cup was co-hosted by the USA, Mexico, and which other country?", opts: ["Costa Rica","Canada","Panama","Cuba"], correct: 1 },
+    { q: "Which country won UEFA Euro 2020 (played in 2021)?", opts: ["England","Italy","Spain","Germany"], correct: 1 },
+    { q: "Which country won UEFA Euro 2024?", opts: ["England","France","Spain","Netherlands"], correct: 2 },
+    { q: "Which country hosted UEFA Euro 2024?", opts: ["Germany","France","Italy","Poland"], correct: 0 },
+    { q: "Which club won the UEFA Champions League in 2017?", opts: ["Barcelona","Real Madrid","Juventus","Bayern Munich"], correct: 1 },
+    { q: "Which club won the UEFA Champions League in 2018, their third title in a row?", opts: ["Real Madrid","Liverpool","Atletico Madrid","Manchester United"], correct: 0 },
+    { q: "Which club won the UEFA Champions League in 2019?", opts: ["Tottenham Hotspur","Liverpool","Ajax","Barcelona"], correct: 1 },
+    { q: "Which club won the UEFA Champions League in 2020?", opts: ["Paris Saint-Germain","Bayern Munich","Lyon","Real Madrid"], correct: 1 },
+    { q: "Which club won the UEFA Champions League in 2021?", opts: ["Manchester City","Chelsea","Real Madrid","Porto"], correct: 1 },
+    { q: "Which club won the UEFA Champions League in 2022?", opts: ["Liverpool","Manchester City","Real Madrid","Villarreal"], correct: 2 },
+    { q: "Which club won the UEFA Champions League in 2023?", opts: ["Inter Milan","Manchester City","AC Milan","Napoli"], correct: 1 },
+    { q: "Which club won the UEFA Champions League in 2024?", opts: ["Borussia Dortmund","Bayern Munich","Real Madrid","PSG"], correct: 2 },
+    { q: "Which club won the UEFA Champions League in 2025, beating Inter Milan 5-0?", opts: ["Paris Saint-Germain","Arsenal","Barcelona","Real Madrid"], correct: 0 },
+    { q: "Which club won the UEFA Champions League in 2026, beating Arsenal on penalties?", opts: ["Barcelona","Bayern Munich","Paris Saint-Germain","Inter Milan"], correct: 2 },
+    { q: "Which club won the Premier League in 2017-18 with a record 100 points?", opts: ["Manchester United","Manchester City","Liverpool","Chelsea"], correct: 1 },
+    { q: "Which club ended a 30-year wait to win the Premier League in 2019-20?", opts: ["Leicester City","Liverpool","Everton","Arsenal"], correct: 1 },
+    { q: "Which club won a treble (Premier League, FA Cup, Champions League) in 2022-23?", opts: ["Manchester City","Arsenal","Chelsea","Liverpool"], correct: 0 },
+    { q: "Which club won the Premier League in 2024-25?", opts: ["Manchester City","Arsenal","Liverpool","Chelsea"], correct: 2 },
+    { q: "Which club won the Premier League in 2025-26, their first title in 22 years?", opts: ["Arsenal","Newcastle United","Aston Villa","Tottenham Hotspur"], correct: 0 },
+    { q: "Who won the Ballon d'Or in 2017?", opts: ["Lionel Messi","Luka Modric","Cristiano Ronaldo","Neymar"], correct: 2 },
+    { q: "Who won the Ballon d'Or in 2018, ending Messi and Ronaldo's decade-long streak?", opts: ["Luka Modric","Kylian Mbappe","Eden Hazard","Antoine Griezmann"], correct: 0 },
+    { q: "Who won the Ballon d'Or in 2022?", opts: ["Kylian Mbappe","Karim Benzema","Lionel Messi","Erling Haaland"], correct: 1 },
+    { q: "Who won the Ballon d'Or in 2024?", opts: ["Vinicius Junior","Jude Bellingham","Rodri","Erling Haaland"], correct: 2 },
+    { q: "In 2021, Lionel Messi left Barcelona to join which club?", opts: ["Inter Miami","Paris Saint-Germain","Manchester City","Juventus"], correct: 1 },
+    { q: "In 2024, Kylian Mbappe left Paris Saint-Germain to join which club?", opts: ["Real Madrid","Manchester City","Liverpool","Barcelona"], correct: 0 },
+
+    // Hard: scorers, awards, transfers
+    { q: "Who scored the winning goal in extra time for Spain in the 2026 World Cup final?", opts: ["Lamine Yamal","Ferran Torres","Nico Williams","Pedri"], correct: 1 },
+    { q: "Which Argentina player was sent off in the 2026 World Cup final?", opts: ["Rodrigo De Paul","Cristian Romero","Enzo Fernandez","Nicolas Otamendi"], correct: 2 },
+    { q: "Who won the Golden Boot at the 2026 World Cup with 10 goals?", opts: ["Lionel Messi","Erling Haaland","Kylian Mbappe","Harry Kane"], correct: 2 },
+    { q: "Who was named Golden Ball winner (best player) at the 2026 World Cup?", opts: ["Rodri","Lamine Yamal","Pedri","Pau Cubarsi"], correct: 0 },
+    { q: "Who won the Golden Glove as best goalkeeper at the 2026 World Cup?", opts: ["Emiliano Martinez","Unai Simon","Mike Maignan","Jordan Pickford"], correct: 1 },
+    { q: "Which player scored a hat-trick in the 2022 World Cup final yet still ended up on the losing side?", opts: ["Lionel Messi","Kylian Mbappe","Ousmane Dembele","Antoine Griezmann"], correct: 1 },
+    { q: "Who won the Golden Ball as best player of the 2022 World Cup?", opts: ["Lionel Messi","Kylian Mbappe","Luka Modric","Julian Alvarez"], correct: 0 },
+    { q: "Which player scored twice for Real Madrid in their 4-1 win over Juventus in the 2017 Champions League final?", opts: ["Karim Benzema","Gareth Bale","Cristiano Ronaldo","Isco"], correct: 2 },
+    { q: "Which Juventus player scored a famous overhead-kick goal in the 2017 Champions League final despite ending on the losing side?", opts: ["Paulo Dybala","Gonzalo Higuain","Mario Mandzukic","Miralem Pjanic"], correct: 2 },
+    { q: "Which substitute scored two goals, including a stunning overhead kick, in the 2018 Champions League final for Real Madrid?", opts: ["Marco Asensio","Gareth Bale","Lucas Vazquez","Isco"], correct: 1 },
+    { q: "Which player scored the only goal as Bayern Munich beat his former club PSG in the 2020 Champions League final?", opts: ["Thomas Muller","Robert Lewandowski","Serge Gnabry","Kingsley Coman"], correct: 3 },
+    { q: "Which player scored the only goal in Chelsea's win over Manchester City in the 2021 Champions League final?", opts: ["Timo Werner","Kai Havertz","Mason Mount","N'Golo Kante"], correct: 1 },
+    { q: "Which player scored the only goal in Real Madrid's 2022 Champions League final win over Liverpool?", opts: ["Karim Benzema","Vinicius Junior","Luka Modric","Federico Valverde"], correct: 1 },
+    { q: "Which player scored the only goal in Manchester City's 2023 Champions League final win over Inter Milan?", opts: ["Erling Haaland","Kevin De Bruyne","Rodri","Ilkay Gundogan"], correct: 2 },
+    { q: "Which player scored twice and was named Man of the Match as PSG thrashed Inter Milan 5-0 in the 2025 Champions League final?", opts: ["Ousmane Dembele","Desire Doue","Bradley Barcola","Vitinha"], correct: 1 },
+    { q: "Which player scored PSG's equalizing penalty in normal time during the 2026 Champions League final against Arsenal?", opts: ["Vitinha","Achraf Hakimi","Ousmane Dembele","Bradley Barcola"], correct: 2 },
+    { q: "Which Brazilian's 2017 transfer from Barcelona to Paris Saint-Germain broke the world transfer record?", opts: ["Vinicius Junior","Neymar","Casemiro","Philippe Coutinho"], correct: 1 },
+    { q: "Which club did Erling Haaland join in 2022 after leaving Borussia Dortmund?", opts: ["Real Madrid","Manchester City","Bayern Munich","PSG"], correct: 1 },
+    { q: "Which English midfielder joined Real Madrid from Borussia Dortmund in 2023?", opts: ["Jude Bellingham","Mason Mount","Declan Rice","Phil Foden"], correct: 0 },
+    { q: "Who ended Messi and Ronaldo's decade-long duopoly by winning the 2018 Ballon d'Or as a Real Madrid midfielder?", opts: ["Luka Modric","Toni Kroos","Kevin De Bruyne","N'Golo Kante"], correct: 0 }
+  ];
+
+  const TIME_PER_QUESTION = 15;
+  const RING_RADIUS = 23;
+  const RING_CIRC = 2 * Math.PI * RING_RADIUS;
+
+  let quiz = [];
+  let currentIndex = 0;
+  let score = 0;
+  let timeLeft = TIME_PER_QUESTION;
+  let timerId = null;
+  let answered = false;
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const screens = {
+    welcome: document.getElementById('screen-welcome'),
+    question: document.getElementById('screen-question'),
+    result: document.getElementById('screen-result')
+  };
+
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  const qIndexEl = document.getElementById('qIndex');
+  const qTotalEl = document.getElementById('qTotal');
+  const qTextEl = document.getElementById('qText');
+  const optionsEl = document.getElementById('options');
+  const progressFillEl = document.getElementById('progressFill');
+  const ringFillEl = document.getElementById('ringFill');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const scoreValEl = document.getElementById('scoreVal');
+  const verdictTextEl = document.getElementById('verdictText');
+  const ratingBarEl = document.getElementById('ratingBar');
+
+  ringFillEl.style.strokeDasharray = String(RING_CIRC);
+
+  qTotalEl.textContent = QUESTIONS.length;
+
+  document.getElementById('startBtn').addEventListener('click', startQuiz);
+  document.getElementById('restartBtn').addEventListener('click', startQuiz);
+
+  function startQuiz(){
+    quiz = shuffle(QUESTIONS);
+    currentIndex = 0;
+    score = 0;
+    showScreen('question');
+    showQuestion();
+  }
+
+  function showQuestion(){
+    if(currentIndex >= quiz.length){
+      finishQuiz();
+      return;
+    }
+    answered = false;
+    const item = quiz[currentIndex];
+    qIndexEl.textContent = currentIndex + 1;
+    qTextEl.textContent = item.q;
+    progressFillEl.style.width = ((currentIndex) / quiz.length * 100) + '%';
+
+    optionsEl.innerHTML = '';
+    const letters = ['A','B','C','D'];
+    item.opts.forEach((optText, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.setAttribute('type','button');
+      btn.innerHTML = '<span class="tag">' + letters[idx] + '</span><span>' + optText + '</span>';
+      btn.addEventListener('click', () => handleAnswer(idx));
+      optionsEl.appendChild(btn);
+    });
+
+    startTimer();
+  }
+
+  function startTimer(){
+    clearInterval(timerId);
+    timeLeft = TIME_PER_QUESTION;
+    updateRing();
+    timerId = setInterval(() => {
+      timeLeft--;
+      updateRing();
+      if(timeLeft <= 0){
+        clearInterval(timerId);
+        handleAnswer(-1);
+      }
+    }, 1000);
+  }
+
+  function updateRing(){
+    timeLeftEl.textContent = Math.max(timeLeft, 0);
+    const fraction = Math.max(timeLeft, 0) / TIME_PER_QUESTION;
+    const offset = RING_CIRC * (1 - fraction);
+    ringFillEl.style.strokeDashoffset = String(offset);
+    ringFillEl.style.stroke = timeLeft <= 5 ? 'var(--red-card)' : 'var(--gold)';
+  }
+
+  function handleAnswer(selectedIdx){
+    if(answered) return;
+    answered = true;
+    clearInterval(timerId);
+
+    const item = quiz[currentIndex];
+    const buttons = optionsEl.querySelectorAll('.opt');
+    buttons.forEach(b => b.disabled = true);
+
+    buttons[item.correct].classList.add('correct');
+    if(selectedIdx !== -1 && selectedIdx !== item.correct){
+      buttons[selectedIdx].classList.add('wrong');
+    }
+    if(selectedIdx === item.correct){
+      score++;
+    }
+
+    setTimeout(() => {
+      currentIndex++;
+      showQuestion();
+    }, 900);
+  }
+
+  function finishQuiz(){
+    progressFillEl.style.width = '100%';
+    scoreValEl.textContent = score;
+    document.querySelector('.score-big').innerHTML = '<span id="scoreVal">' + score + '</span> / ' + quiz.length;
+
+    const percent = (score / quiz.length) * 100;
+    let verdict;
+    if(percent === 100) verdict = "Perfect score! Certified football encyclopedia.";
+    else if(percent >= 75) verdict = "Great job — you really know your football history.";
+    else if(percent >= 50) verdict = "Solid effort. A few more matches and you'll be unstoppable.";
+    else verdict = "Rocky start — study the transfer news and try again.";
+    verdictTextEl.textContent = verdict;
+
+    const pips = 5;
+    const litPips = Math.max(1, Math.round(percent / 100 * pips));
+    ratingBarEl.innerHTML = '';
+    for(let i = 0; i < pips; i++){
+      const pip = document.createElement('div');
+      pip.className = 'pip' + (i < litPips ? ' on' : '');
+      ratingBarEl.appendChild(pip);
+    }
+
+    showScreen('result');
+  }
+
+})();
+</script>
+</body>
+</html>
